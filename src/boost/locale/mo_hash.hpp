@@ -8,7 +8,6 @@
 #define BOOST_LOCALE_MO_HASH_HPP
 
 #include <cstdint>
-#include "config.hpp"
 
 namespace boost {
 namespace locale {

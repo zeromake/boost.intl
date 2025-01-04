@@ -8,7 +8,6 @@
 #define BOOST_LOCALE_UTIL_HPP
 
 #include <string>
-#include "config.hpp"
 
 namespace boost {
 namespace locale {

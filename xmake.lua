@@ -12,5 +12,7 @@ end
 
 target("intl")
     set_kind("static")
+    add_includedirs("include")
     add_files("src/boost/locale/*.cpp")
     add_packages("nonstd.string-view")
+    add_headerfiles("include/(boost/locale/*.hpp)")

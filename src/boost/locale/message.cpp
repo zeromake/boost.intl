@@ -4,7 +4,8 @@
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 
-#include "message.hpp"
+#include "config.hpp"
+#include <boost/locale/message.hpp>
 #include "mo_hash.hpp"
 #include "data.hpp"
 #include "util.hpp"
@@ -580,6 +581,8 @@ std::locale install_message_facet(const std::locale& in,
   minf.paths = paths;
   switch (type) {
   case char_facet_t::nochar:
+    break;
+  case char_facet_t::wchar_f:
     break;
   case char_facet_t::char_f:
     return std::locale(in, gnu_gettext::create_messages_facet<char>(minf));

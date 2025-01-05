@@ -23,8 +23,8 @@ enum class category_t : uint32_t {
   message = 1 << 4, ///< Generate message facets
 };
 class generator {
+public:
   generator();
-
   ~generator();
 
   void categories(category_t cats);
@@ -41,13 +41,19 @@ class generator {
   bool locale_cache_enabled() const;
   bool use_ansi_encoding() const;
   void use_ansi_encoding(bool enc);
+  std::string lid() const;
   std::locale generate(const std::string& id) const;
   std::locale generate(const std::locale& base, const std::string& id) const;
   std::locale operator()(const std::string& id) const { return generate(id); }
+  std::locale operator()(const std::locale& base, const std::string& id) const
+  {
+    return generate(base, id);
+  }
 
 private:
   generator(const generator&);
   void operator=(const generator&);
+  void prepare_data() const;
   struct data;
   std::unique_ptr<struct data> d;
 };

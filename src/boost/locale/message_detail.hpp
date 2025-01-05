@@ -9,6 +9,7 @@
 
 #include <boost/locale/generator.hpp>
 #include "data.hpp"
+#include <vector>
 
 namespace boost {
 namespace locale {

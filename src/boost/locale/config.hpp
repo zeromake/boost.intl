@@ -22,7 +22,13 @@
 #  if __has_builtin(__builtin_expect)
 #    define BOOST_LIKELY(x) __builtin_expect(x, 1)
 #    define BOOST_UNLIKELY(x) __builtin_expect(x, 0)
+#  else
+#    define BOOST_LIKELY(x) x
+#    define BOOST_UNLIKELY(x) x
 #  endif
+#else
+#  define BOOST_LIKELY(x) x
+#  define BOOST_UNLIKELY(x) x
 #endif
 
 #if defined(__clang__) || defined(__GNUC__)

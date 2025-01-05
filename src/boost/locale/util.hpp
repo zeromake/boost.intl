@@ -11,7 +11,27 @@
 
 namespace boost {
 namespace locale {
+
 namespace util {
+
+std::locale create_info(const std::locale& in, const std::string& name);
+std::string get_system_locale(bool use_utf8_on_windows = false);
+
+inline bool try_to_int(const std::string& s, int& res)
+{
+  if (s.empty())
+    return false;
+  errno = 0;
+  char* end_char{};
+  const auto v = std::strtol(s.c_str(), &end_char, 10);
+  if (errno == ERANGE || end_char != s.c_str() + s.size())
+    return false;
+  if (v < std::numeric_limits<int>::min() ||
+      v > std::numeric_limits<int>::max())
+    return false;
+  res = v;
+  return true;
+}
 
 template <typename Char> Char* str_end(Char* str)
 {
@@ -44,6 +64,9 @@ inline bool are_encodings_equal(const std::string& l, const std::string& r)
 {
   return normalize_encoding(l) == normalize_encoding(r);
 }
+#ifdef _WIN32
+std::wstring toNamespacedPath(const std::wstring& path);
+#endif
 } // namespace util
 } // namespace locale
 } // namespace boost

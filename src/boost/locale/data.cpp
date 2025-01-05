@@ -8,6 +8,9 @@
 #include "data.hpp"
 #include "util.hpp"
 
+#include <algorithm>
+#include <stdexcept>
+
 namespace boost {
 namespace locale {
 namespace util {

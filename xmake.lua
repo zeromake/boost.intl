@@ -1,6 +1,5 @@
 add_rules("mode.debug", "mode.release")
 
-set_languages("c++14")
 set_encodings("utf-8")
 
 includes("package.lua")
@@ -12,7 +11,23 @@ end
 
 target("intl")
     set_kind("static")
-    add_includedirs("include")
+    set_languages("c++14")
+    add_includedirs("include", {public = true})
     add_files("src/boost/locale/*.cpp")
-    add_packages("nonstd.string-view")
+    add_packages("nonstd.string-view", {public = true})
     add_headerfiles("include/(boost/locale/*.hpp)")
+
+target("tests")
+    set_default(false)
+    add_includedirs("include")
+    add_files("tests/*.cpp|main.cpp")
+    add_files("tests/main.cpp")
+    add_tests("default")
+    add_packages("gtest")
+    set_languages("c++17")
+    add_deps("intl")
+    on_config(function (target)
+        local dir = path.absolute(os.projectdir(), '')
+        dir = dir:gsub("\\", "/")
+        target:add("defines", "BOOST_LOCALE_TEST_DATA=\"" .. dir .. "/tests/data\"")
+    end)

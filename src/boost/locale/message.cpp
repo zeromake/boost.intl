@@ -6,9 +6,11 @@
 
 #include "config.hpp"
 #include <boost/locale/message.hpp>
-#include "mo_hash.hpp"
 #include "data.hpp"
+#include "mo_hash.hpp"
 #include "util.hpp"
+#include "gnu_gettext.hpp"
+#include "mo_lambda.hpp"
 #include <unordered_map>
 #include <memory>
 #include <map>
@@ -48,26 +50,29 @@ std::vector<std::string> messages_info::get_catalog_paths() const
   }
   return result;
 }
-namespace lambda {
-struct expr {
-  using value_type = long long;
-  virtual value_type operator()(value_type n) const = 0;
-  virtual ~expr() = default;
-};
-using expr_ptr = std::unique_ptr<expr>;
 
-class plural_expr {
-  expr_ptr p_;
+template <typename CharType>
+std::basic_string<CharType> __convert(const std::string& s)
+{
+  return std::basic_string<CharType>(s.begin(), s.end());
+}
 
-public:
-  plural_expr() = default;
-  explicit plural_expr(expr_ptr p) : p_(std::move(p)) {}
-  expr::value_type operator()(expr::value_type n) const { return (*p_)(n); }
-  explicit operator bool() const { return static_cast<bool>(p_); }
-};
-
-plural_expr compile(const char* c_expression);
-} // namespace lambda
+#ifdef _WIN32
+#  include <windows.h>
+std::wstring conv_to_utf(const std::string& in)
+{
+  int len = MultiByteToWideChar(CP_UTF8, 0, in.c_str(), -1, NULL, 0);
+  auto buf = std::unique_ptr<wchar_t[]>(std::move(new wchar_t[len + 1]));
+  buf.get()[len] = 0;
+  len = MultiByteToWideChar(CP_UTF8, 0, in.c_str(), -1, buf.get(), len);
+  BOOST_ASSERT(len > 0);
+  return std::wstring(buf.get());
+}
+template <> std::basic_string<wchar_t> __convert(const std::string& s)
+{
+  return conv_to_utf(s);
+}
+#endif
 
 class c_file {
 public:
@@ -82,7 +87,7 @@ public:
       fclose(handle);
   }
 
-#if defined(_WIN32)
+#ifdef _WIN32
 
   c_file(const std::string& file_name, const std::string& encoding)
   {
@@ -92,8 +97,9 @@ public:
     // As not all standard C++ libraries support nonstandard
     // std::istream::open(wchar_t const *) we would use old and good stdio and
     // _wfopen CRTL functions
-
-    std::wstring wfile_name = conv::to_utf<wchar_t>(file_name, encoding);
+    std::wstring wfile_name = conv_to_utf(file_name);
+    wfile_name = util::toNamespacedPath(wfile_name);
+    // wprintf(L"Opening file %s\n", wfile_name.c_str());
     handle = _wfopen(wfile_name.c_str(), L"rb");
   }
 
@@ -484,9 +490,8 @@ private:
       // 干掉了转换逻辑现在只支持utf-8的 char* 了
       for (unsigned i = 0; i < mo->size(); i++) {
         const char* ckey = mo->key(i);
-        const key_type key(ckey);
-
-        data.catalog[key] = std::string(mo->value(i));
+        const key_type key(__convert<CharType>(ckey));
+        data.catalog[key] = __convert<CharType>(std::string(mo->value(i)));
       }
     }
     return true;
@@ -561,8 +566,8 @@ message_format<CharType>* create_messages_facet(const messages_info& info)
 }
 
 template message_format<char>* create_messages_facet(const messages_info& info);
-// template message_format<wchar_t>* create_messages_facet(const messages_info&
-// info);
+template message_format<wchar_t>*
+create_messages_facet(const messages_info& info);
 } // namespace gnu_gettext
 namespace detail {
 std::locale install_message_facet(const std::locale& in,
@@ -583,7 +588,7 @@ std::locale install_message_facet(const std::locale& in,
   case char_facet_t::nochar:
     break;
   case char_facet_t::wchar_f:
-    break;
+    return std::locale(in, gnu_gettext::create_messages_facet<wchar_t>(minf));
   case char_facet_t::char_f:
     return std::locale(in, gnu_gettext::create_messages_facet<char>(minf));
   }

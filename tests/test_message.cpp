@@ -3,20 +3,16 @@
 
 const char* message_path = BOOST_LOCALE_TEST_DATA;
 
-namespace impl {
-template <typename Char>
-void test_translate(const std::string& sOriginal, const std::string& sExpected,
-                    const std::locale& l, const std::string& domain)
-{
-  EXPECT_EQ(boost::locale::translate(sOriginal).str(l, domain), sExpected);
-}
-} // namespace impl
-
 void test_translate(const std::string& original, const std::string& expected,
                     const std::locale& l, const std::string& domain)
 {
-  impl::test_translate<char>(original, expected, l, domain);
-  impl::test_translate<wchar_t>(original, expected, l, domain);
+  EXPECT_EQ(boost::locale::translate(original).str(l, domain), expected);
+}
+
+void test_wtranslate(const std::wstring& original, const std::wstring& expected,
+                    const std::locale& l, const std::string& domain)
+{
+  EXPECT_EQ(boost::locale::translate(original).str(l, domain), expected);
 }
 
 TEST(message, translate)
@@ -41,4 +37,15 @@ TEST(message, translate)
   test_translate("#untranslated", "#untranslated", l, "default");
   test_translate("##untranslated", "##untranslated", l, "default");
   test_translate("#hello", "#שלום", l, "default");
+
+
+  std::cout << "    wsingle forms" << std::endl;
+  test_wtranslate(L"hello", L"שלום", l, "default");
+  test_wtranslate(L"hello", L"היי", l, "simple");
+  test_wtranslate(L"hello", L"hello", l, "undefined");
+  test_wtranslate(L"untranslated", L"untranslated", l, "default");
+  // Check removal of old "context" information
+  test_wtranslate(L"#untranslated", L"#untranslated", l, "default");
+  test_wtranslate(L"##untranslated", L"##untranslated", l, "default");
+  test_wtranslate(L"#hello", L"#שלום", l, "default");
 }

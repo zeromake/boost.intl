@@ -5,7 +5,7 @@
 // https://www.boost.org/LICENSE_1_0.txt
 
 #include "config.hpp"
-#include "formatting.hpp"
+#include <boost/locale/formatting.hpp>
 #include "ios_prop.hpp"
 
 namespace boost {

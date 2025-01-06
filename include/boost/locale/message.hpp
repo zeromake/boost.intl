@@ -12,6 +12,7 @@
 #include <functional>
 #include <boost/locale/generator.hpp>
 #include <boost/locale/facet_id.hpp>
+#include <boost/locale/formatting.hpp>
 
 namespace boost {
 namespace locale {

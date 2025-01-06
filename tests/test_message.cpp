@@ -10,7 +10,7 @@ void test_translate(const std::string& original, const std::string& expected,
 }
 
 void test_wtranslate(const std::wstring& original, const std::wstring& expected,
-                    const std::locale& l, const std::string& domain)
+                     const std::locale& l, const std::string& domain)
 {
   EXPECT_EQ(boost::locale::translate(original).str(l, domain), expected);
 }
@@ -37,7 +37,6 @@ TEST(message, translate)
   test_translate("#untranslated", "#untranslated", l, "default");
   test_translate("##untranslated", "##untranslated", l, "default");
   test_translate("#hello", "#שלום", l, "default");
-
 
   std::cout << "    wsingle forms" << std::endl;
   test_wtranslate(L"hello", L"שלום", l, "default");

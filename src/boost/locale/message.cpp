@@ -15,6 +15,7 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <cstdint>
 
 namespace boost {
 namespace locale {
@@ -71,6 +72,79 @@ std::wstring conv_to_utf(const std::string& in)
 template <> std::basic_string<wchar_t> __convert(const std::string& s)
 {
   return conv_to_utf(s);
+}
+#else
+static int32_t utf8_mbtowc(uint32_t* pwc, const uint8_t* cpmb,
+                           const uint32_t mb_n)
+{
+  const uint8_t first_c = cpmb[0];
+  int32_t n = 0;
+  uint32_t first_mark = 0;
+  if (!(first_c & 0x80)) {
+    n = 1;
+    first_mark = 0;
+  }
+  else if ((first_c & 0xe0) == 0xc0) {
+    n = 2;
+    first_mark = 0x1f;
+  }
+  else if ((first_c & 0xf0) == 0xe0) {
+    n = 3;
+    first_mark = 0x0f;
+  }
+  else if ((first_c & 0xf8) == 0xf0) {
+    n = 4;
+    first_mark = 0x07;
+  }
+  else if ((first_c & 0xfc) == 0xf8) {
+    n = 5;
+    first_mark = 0x03;
+  }
+  else if ((first_c & 0xfe) == 0xfc) {
+    n = 6;
+    first_mark = 0x01;
+  }
+  if (n == 0) {
+    return -1;
+  }
+  if (n > mb_n) {
+    return -2;
+  }
+  if (pwc == NULL) {
+    return n;
+  }
+  uint32_t wc = 0;
+  if (n == 1) {
+    wc = (uint32_t)(cpmb[0]);
+  }
+  else {
+    wc |= (uint32_t)(cpmb[n - 1] & 0x3f);
+    uint32_t end = 6 * (n - 1);
+    uint32_t i = 0;
+    for (uint32_t bit = end; bit >= 6; bit -= 6) {
+      wc |= (uint32_t)((cpmb[i] & (i == 0 ? first_mark : 0x3f)) << bit);
+      i++;
+    }
+  }
+  *pwc = wc;
+  return n;
+}
+template <> std::basic_string<wchar_t> __convert(const std::string& s)
+{
+  const char* in = s.c_str();
+  const char* end = in + s.size();
+  int32_t len = 0;
+  uint32_t wc;
+  std::wstring result;
+  while (in < end) {
+    const int32_t n =
+        utf8_mbtowc(&wc, reinterpret_cast<const uint8_t*>(in), end - in);
+    if (n <= 0)
+      throw std::runtime_error("Invalid UTF-8 sequence");
+    in += n;
+    result.push_back(wc);
+  }
+  return result;
 }
 #endif
 
@@ -487,7 +561,7 @@ private:
     if (mo_useable_directly(mo_encoding, *mo))
       data.mo_catalog = std::move(mo);
     else {
-      // 干掉了转换逻辑现在只支持utf-8的 char* 了
+      // 干掉了转换逻辑现在只支持utf-8的文件输入了，支持 char/wchar_t
       for (unsigned i = 0; i < mo->size(); i++) {
         const char* ckey = mo->key(i);
         const key_type key(__convert<CharType>(ckey));

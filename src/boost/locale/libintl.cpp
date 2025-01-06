@@ -4,7 +4,7 @@
 #include <locale>
 #include <memory>
 
-static std::unique_ptr<std::locale> loc = nullptr;
+static std::unique_ptr<std::locale> loc = std::unique_ptr<std::locale>(new std::locale());
 static boost::locale::generator gen;
 
 extern "C" {

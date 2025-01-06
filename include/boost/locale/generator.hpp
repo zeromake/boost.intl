@@ -41,7 +41,7 @@ public:
   bool locale_cache_enabled() const;
   bool use_ansi_encoding() const;
   void use_ansi_encoding(bool enc);
-  std::string lid() const;
+  const std::string& lid() const;
   std::locale generate(const std::string& id) const;
   std::locale generate(const std::locale& base, const std::string& id) const;
   std::locale operator()(const std::string& id) const { return generate(id); }

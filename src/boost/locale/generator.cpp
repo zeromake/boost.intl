@@ -114,7 +114,7 @@ void generator::locale_cache_enabled(bool enabled)
   d->caching_enabled = enabled;
 }
 
-std::string generator::lid() const
+const std::string& generator::lid() const
 {
   return d->locale_id_.empty() ? d->in_use_id_ : d->locale_id_;
 }

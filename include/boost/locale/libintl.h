@@ -23,6 +23,7 @@ const char* __FUNCTION_NAME(textdomain)(const char* domain);
 const char* __FUNCTION_NAME(bindtextdomain)(const char* domain, const char* dirname);
 const char* __FUNCTION_NAME(bind_textdomain_codeset)(const char* domain, const char* codeset);
 void __FUNCTION_NAME(textdomain_generate)(const char* lid);
+const char* __FUNCTION_NAME(textdomain_lid)(void);
 #ifdef __cplusplus
 };
 #endif
@@ -38,6 +39,7 @@ void __FUNCTION_NAME(textdomain_generate)(const char* lid);
 #define bindtextdomain(domain, dirname) __FUNCTION_NAME(bindtextdomain)(domain, dirname)
 #define bind_textdomain_codeset(domain, codeset) __FUNCTION_NAME(bind_textdomain_codeset)(domain, codeset)
 #define textdomain_generate(lid) __FUNCTION_NAME(textdomain_generate)(lid)
+#define textdomain_lid() __FUNCTION_NAME(textdomain_lid)()
 #endif
 
 #endif

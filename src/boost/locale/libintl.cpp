@@ -84,4 +84,8 @@ void __FUNCTION_NAME(textdomain_generate)(const char* lid)
 {
   loc = std::unique_ptr<std::locale>(new std::locale(gen.generate(lid)));
 }
+const char* __FUNCTION_NAME(textdomain_lid)(void)
+{
+  return nonstd::string_view(gen.lid()).data();
 }
+} // extern "C"

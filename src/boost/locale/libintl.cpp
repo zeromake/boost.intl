@@ -4,40 +4,49 @@
 #include <locale>
 #include <memory>
 
-static std::unique_ptr<std::locale> loc = std::unique_ptr<std::locale>(new std::locale());
+static std::unique_ptr<std::locale> loc = nullptr;
 static boost::locale::generator gen;
+
+namespace {
+inline static const std::locale& get_locale()
+{
+  return (loc != nullptr) ? *loc : std::locale::classic();
+}
+} // namespace
 
 extern "C" {
 const char* __FUNCTION_NAME(gettext)(const char* msgid)
 {
-  return boost::locale::basic_message<char>(msgid).str_view(*loc).data();
+  return boost::locale::basic_message<char>(msgid)
+      .str_view(get_locale())
+      .data();
 }
 
 const char* __FUNCTION_NAME(dgettext)(const char* domain, const char* msgid)
 {
   return boost::locale::basic_message<char>(msgid)
-      .str_view(*loc, domain)
+      .str_view(get_locale(), domain)
       .data();
 }
 const char* __FUNCTION_NAME(dcgettext)(const char* domain, const char* msgid,
                                        int category)
 {
   return boost::locale::basic_message<char>(msgid)
-      .str_view(*loc, domain)
+      .str_view(get_locale(), domain)
       .data();
 }
 const char* __FUNCTION_NAME(ngettext)(const char* msgid1, const char* msgid2,
                                       unsigned long int n)
 {
   return boost::locale::basic_message<char>(msgid1, msgid2, n)
-      .str_view(*loc)
+      .str_view(get_locale())
       .data();
 }
 const char* __FUNCTION_NAME(dngettext)(const char* domain, const char* msgid1,
                                        const char* msgid2, unsigned long int n)
 {
   return boost::locale::basic_message<char>(msgid1, msgid2, n)
-      .str_view(*loc, domain)
+      .str_view(get_locale(), domain)
       .data();
 }
 const char* __FUNCTION_NAME(dcngettext)(const char* domain, const char* msgid1,
@@ -45,7 +54,7 @@ const char* __FUNCTION_NAME(dcngettext)(const char* domain, const char* msgid1,
                                         int category)
 {
   return boost::locale::basic_message<char>(msgid1, msgid2, n)
-      .str_view(*loc, domain)
+      .str_view(get_locale(), domain)
       .data();
 }
 const char* __FUNCTION_NAME(textdomain)(const char* domain)

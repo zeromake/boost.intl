@@ -1,8 +1,17 @@
 add_rules("mode.debug", "mode.release")
 
 set_encodings("utf-8")
+option("unit")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Build unit tests")
+option_end()
 
 includes("package.lua")
+
+if has_config("unit") then
+    add_requires("gtest")
+end
 
 if is_plat("windows") then
     add_cxxflags("/EHsc", {tools = {"clang_cl", "cl"}})

@@ -8,6 +8,7 @@ TEST(libintl, gettext)
   bindtextdomain("default", message_path);
   textdomain("simple");
   textdomain("full");
-  textdomain_generate("he_IL.UTF-8");
+  printf("%s\n", boost_locale_generate("he_IL.UTF-8"));
+
   EXPECT_STREQ(gettext("hello"),  "שלום");
 }

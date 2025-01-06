@@ -22,8 +22,10 @@ const char* __FUNCTION_NAME(dcngettext)(const char* domain, const char* msgid1, 
 const char* __FUNCTION_NAME(textdomain)(const char* domain);
 const char* __FUNCTION_NAME(bindtextdomain)(const char* domain, const char* dirname);
 const char* __FUNCTION_NAME(bind_textdomain_codeset)(const char* domain, const char* codeset);
-void __FUNCTION_NAME(textdomain_generate)(const char* lid);
-const char* __FUNCTION_NAME(textdomain_lid)(void);
+
+const char* __FUNCTION_NAME(generate)(const char* lid);
+void __FUNCTION_NAME(add_domain)(const char* domain);
+void __FUNCTION_NAME(add_path)(const char* dirname);
 #ifdef __cplusplus
 };
 #endif
@@ -38,8 +40,6 @@ const char* __FUNCTION_NAME(textdomain_lid)(void);
 #define textdomain(domain) __FUNCTION_NAME(textdomain)(domain)
 #define bindtextdomain(domain, dirname) __FUNCTION_NAME(bindtextdomain)(domain, dirname)
 #define bind_textdomain_codeset(domain, codeset) __FUNCTION_NAME(bind_textdomain_codeset)(domain, codeset)
-#define textdomain_generate(lid) __FUNCTION_NAME(textdomain_generate)(lid)
-#define textdomain_lid() __FUNCTION_NAME(textdomain_lid)()
 #endif
 
 #endif

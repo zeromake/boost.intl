@@ -80,12 +80,17 @@ const char* __FUNCTION_NAME(bind_textdomain_codeset)(const char* domain,
     gen.add_messages_domain(domain);
   return NULL;
 }
-void __FUNCTION_NAME(textdomain_generate)(const char* lid)
-{
+
+const char* __FUNCTION_NAME(generate)(const char* lid) {
   loc = std::unique_ptr<std::locale>(new std::locale(gen.generate(lid)));
-}
-const char* __FUNCTION_NAME(textdomain_lid)(void)
-{
   return nonstd::string_view(gen.lid()).data();
+}
+void __FUNCTION_NAME(add_domain)(const char* domain) {
+  if (domain != NULL)
+    gen.add_messages_domain(domain);
+}
+void __FUNCTION_NAME(add_path)(const char* dirname) {
+  if (dirname != NULL)
+    gen.add_messages_path(dirname);
 }
 } // extern "C"

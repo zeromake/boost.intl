@@ -450,21 +450,20 @@ class mo_message : public message_format<CharType> {
   };
 
 public:
-  using string_view_type =
-      typename mo_file_use_traits<CharType>::string_view_type;
-  const CharType* get(int domain_id, const CharType* context,
+  using string_view_type = nonstd::basic_string_view<CharType>;
+  const string_view_type get(int domain_id, const CharType* context,
                       const CharType* in_id) const override
   {
     const auto result = get_string(domain_id, context, in_id);
-    return result.empty() ? nullptr : result.data();
+    return result;
   }
 
-  const CharType* get(int domain_id, const CharType* context,
+  const string_view_type get(int domain_id, const CharType* context,
                       const CharType* single_id, count_type n) const override
   {
     auto result = get_string(domain_id, context, single_id);
     if (result.empty())
-      return nullptr;
+      return result;
 
     // domain_id is already checked by get_string -> Would return a null-pair
     BOOST_ASSERT(domain_id >= 0 &&
@@ -478,10 +477,10 @@ public:
     for (decltype(plural_idx) i = 0; i < plural_idx; ++i) {
       const auto pos = result.find(CharType(0));
       if (BOOST_UNLIKELY(pos == string_view_type::npos))
-        return nullptr;
+        return {};
       result.remove_prefix(pos + 1);
     }
-    return result.empty() ? nullptr : result.data();
+    return result;
   }
 
   int domain(const std::string& domain) const override

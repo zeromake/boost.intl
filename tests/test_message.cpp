@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <boost/locale/message.hpp>
 
-const char* message_path = BOOST_LOCALE_TEST_DATA;
+extern const char* message_path;
 
 void test_translate(const std::string& original, const std::string& expected,
                     const std::locale& l, const std::string& domain)

@@ -13,6 +13,7 @@
 #include <boost/locale/generator.hpp>
 #include <boost/locale/facet_id.hpp>
 #include <boost/locale/formatting.hpp>
+#include <boost/locale/nonstd_string_view.hpp>
 
 namespace boost {
 namespace locale {
@@ -61,11 +62,12 @@ class message_format : public std::locale::facet,
 public:
   typedef CharType char_type;
   typedef std::basic_string<char_type> string_type;
+  using string_view_type = nonstd::basic_string_view<char_type>;
 
   message_format(size_t refs = 0) : std::locale::facet(refs) {}
-  virtual const char_type* get(int domain_id, const char_type* context,
+  virtual const string_view_type get(int domain_id, const char_type* context,
                                const char_type* id) const = 0;
-  virtual const char_type* get(int domain_id, const char_type* context,
+  virtual const string_view_type get(int domain_id, const char_type* context,
                                const char_type* single_id,
                                count_type n) const = 0;
   virtual int domain(const std::string& domain) const = 0;
@@ -78,6 +80,7 @@ public:
   typedef CharType char_type;
   typedef std::basic_string<char_type> string_type;
   typedef message_format<char_type> facet_type;
+  using string_view_type = nonstd::basic_string_view<char_type>;
   basic_message()
       : n_(0), c_id_(nullptr), c_context_(nullptr), c_plural_(nullptr)
   {
@@ -195,6 +198,31 @@ public:
     out << write(loc, id, buffer);
   }
 
+  operator string_view_type() const { return str_view(); }
+  string_view_type str_view() const { return str_view(std::locale()); }
+  string_view_type str_view(const std::locale& locale) const { return str_view(locale, 0); }
+  string_view_type str_view(const std::locale& locale, const std::string& domain_id) const
+  {
+    int id = 0;
+    if (std::has_facet<facet_type>(locale))
+      id = std::use_facet<facet_type>(locale).domain(domain_id);
+    return str_view(locale, id);
+  }
+  string_view_type str_view(const std::string& domain_id) const
+  {
+    return str_view(std::locale(), domain_id);
+  }
+  string_view_type str_view(const std::locale& loc, int id) const
+  {
+    return write_view(loc, id);
+  }
+  void write_view(std::basic_ostream<char_type>& out) const
+  {
+    const std::locale& loc = out.getloc();
+    int id = ios_info::get(out).domain_id();
+    out << write_view(loc, id);
+  }
+
 private:
   const char_type* plural() const
   {
@@ -215,6 +243,36 @@ private:
 
   const char_type* id() const { return c_id_ ? c_id_ : id_.c_str(); }
 
+  static const char_type* get_string_view_data(const string_view_type& sv)
+  {
+    return sv.empty() ? nullptr : sv.data();
+  }
+
+  const string_view_type write_view(const std::locale& loc, int domain_id) const {
+    const char_type* id = this->id();
+    const char_type* context = this->context();
+    const char_type* plural = this->plural();
+    if (*id == 0)
+      return {};
+
+    const facet_type* facet = nullptr;
+    if (std::has_facet<facet_type>(loc))
+      facet = &std::use_facet<facet_type>(loc);
+
+    string_view_type translated = {};
+    if (facet) {
+      if (!plural)
+        translated = facet->get(domain_id, context, id);
+      else
+        translated = facet->get(domain_id, context, id, n_).data();
+    }
+    if (translated.empty()) {
+      const char_type* msg = plural ? (n_ == 1 ? id : plural) : id;
+      translated = msg;
+    }
+    return translated;
+  }
+
   const char_type* write(const std::locale& loc, int domain_id,
                          string_type& buffer) const
   {
@@ -234,9 +292,9 @@ private:
     const char_type* translated = nullptr;
     if (facet) {
       if (!plural)
-        translated = facet->get(domain_id, context, id);
+        translated = get_string_view_data(facet->get(domain_id, context, id));
       else
-        translated = facet->get(domain_id, context, id, n_);
+        translated = get_string_view_data(facet->get(domain_id, context, id, n_));
     }
 
     if (!translated) {
@@ -265,7 +323,7 @@ template <typename CharType>
 std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& out,
                                          const basic_message<CharType>& msg)
 {
-  msg.write(out);
+  msg.write_view(out);
   return out;
 }
 

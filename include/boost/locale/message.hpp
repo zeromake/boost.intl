@@ -10,6 +10,7 @@
 #include <string>
 #include <locale>
 #include <functional>
+#include <cstring>
 #include <boost/locale/generator.hpp>
 #include <boost/locale/facet_id.hpp>
 #include <boost/locale/formatting.hpp>

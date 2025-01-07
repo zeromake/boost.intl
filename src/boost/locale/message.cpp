@@ -277,13 +277,13 @@ public:
     }
   }
 
-  const char* key(unsigned id) const
+  const char* key(unsigned int id) const
   {
     const uint32_t off = get(keys_offset_ + id * 8 + 4);
     return data_.data() + off;
   }
 
-  nonstd::string_view value(unsigned id) const
+  nonstd::string_view value(unsigned int id) const
   {
     const uint32_t len = get(translations_offset_ + id * 8);
     const uint32_t off = get(translations_offset_ + id * 8 + 4);
@@ -299,7 +299,7 @@ public:
   bool empty() { return size_ == 0; }
 
 private:
-  uint32_t get(unsigned offset) const
+  uint32_t get(unsigned int offset) const
   {
     if (offset > data_.size() - 4)
       throw std::runtime_error("Bad mo-file format");
@@ -497,7 +497,7 @@ public:
     domain_data_.resize(domains.size());
 
     const auto catalog_paths = inf.get_catalog_paths();
-    for (unsigned i = 0; i < domains.size(); i++) {
+    for (unsigned int i = 0; i < domains.size(); i++) {
       const auto& domain = domains[i];
       domains_[domain.name] = i;
       const std::string filename = domain.name + ".mo";
@@ -561,7 +561,7 @@ private:
       data.mo_catalog = std::move(mo);
     else {
       // 干掉了转换逻辑现在只支持utf-8的文件输入了，支持 char/wchar_t
-      for (unsigned i = 0; i < mo->size(); i++) {
+      for (unsigned int i = 0; i < mo->size(); i++) {
         const char* ckey = mo->key(i);
         const key_type key(__convert<CharType>(ckey));
         data.catalog[key] = __convert<CharType>(std::string(mo->value(i)));
@@ -585,7 +585,7 @@ private:
       return false;
     if (util::are_encodings_equal(mo_encoding, key_encoding_))
       return true;
-    for (unsigned i = 0; i < mo.size(); i++) {
+    for (unsigned int i = 0; i < mo.size(); i++) {
       if (!detail::is_us_ascii_string(mo.key(i)))
         return false;
     }
@@ -624,7 +624,7 @@ private:
     }
   }
 
-  std::map<std::string, unsigned> domains_;
+  std::map<std::string, unsigned int> domains_;
   std::vector<domain_data_type> domain_data_;
 
   std::string locale_encoding_;

@@ -16,6 +16,13 @@
 #include <map>
 #include <string>
 #include <cstdint>
+#ifdef _WIN32
+extern "C" {
+__declspec(dllimport) int __stdcall MultiByteToWideChar(
+    unsigned int CodePage, unsigned long dwFlags, const char* lpMultiByteStr,
+    int cbMultiByte, wchar_t* lpWideCharStr, int cchWideChar);
+}
+#endif
 
 namespace boost {
 namespace locale {
@@ -59,19 +66,14 @@ std::basic_string<CharType> __convert(const std::string& s)
 }
 
 #ifdef _WIN32
-#  include <windows.h>
-std::wstring conv_to_utf(const std::string& in)
-{
-  int len = MultiByteToWideChar(CP_UTF8, 0, in.c_str(), -1, NULL, 0);
-  auto buf = std::unique_ptr<wchar_t[]>(std::move(new wchar_t[len + 1]));
-  buf.get()[len] = 0;
-  len = MultiByteToWideChar(CP_UTF8, 0, in.c_str(), -1, buf.get(), len);
-  BOOST_ASSERT(len > 0);
-  return std::wstring(buf.get());
-}
 template <> std::basic_string<wchar_t> __convert(const std::string& s)
 {
-  return conv_to_utf(s);
+  int len = ::MultiByteToWideChar(65001, 0, s.c_str(), -1, NULL, 0);
+  auto buf = std::unique_ptr<wchar_t[]>(new wchar_t[len + 1]);
+  buf.get()[len] = 0;
+  len = ::MultiByteToWideChar(65001, 0, s.c_str(), -1, buf.get(), len);
+  BOOST_ASSERT(len > 0);
+  return std::wstring(buf.get());
 }
 #else
 static int32_t utf8_mbtowc(uint32_t* pwc, const uint8_t* cpmb,
@@ -171,7 +173,7 @@ public:
     // As not all standard C++ libraries support nonstandard
     // std::istream::open(wchar_t const *) we would use old and good stdio and
     // _wfopen CRTL functions
-    std::wstring wfile_name = conv_to_utf(file_name);
+    std::wstring wfile_name = __convert<wchar_t>(file_name);
     wfile_name = util::toNamespacedPath(wfile_name);
     // wprintf(L"Opening file %s\n", wfile_name.c_str());
     handle = _wfopen(wfile_name.c_str(), L"rb");
@@ -452,14 +454,15 @@ class mo_message : public message_format<CharType> {
 public:
   using string_view_type = nonstd::basic_string_view<CharType>;
   const string_view_type get(int domain_id, const CharType* context,
-                      const CharType* in_id) const override
+                             const CharType* in_id) const override
   {
     const auto result = get_string(domain_id, context, in_id);
     return result;
   }
 
   const string_view_type get(int domain_id, const CharType* context,
-                      const CharType* single_id, count_type n) const override
+                             const CharType* single_id,
+                             count_type n) const override
   {
     auto result = get_string(domain_id, context, single_id);
     if (result.empty())

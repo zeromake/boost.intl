@@ -11,12 +11,21 @@
 #include <vector>
 
 #ifdef _WIN32
-#  include <windows.h>
-#  include <wchar.h>
+#  define LOCALE_SISO639LANGNAME 0x00000059
+#  define LOCALE_SISO3166CTRYNAME 0x0000005A
+#  define LOCALE_IDEFAULTANSICODEPAGE 0x00001004
+#  define LOCALE_USER_DEFAULT 0x0400
+extern "C" {
+__declspec(dllimport) int __stdcall GetLocaleInfoA(unsigned long Locale,
+                                                   unsigned long LCType,
+                                                   char* lpLCData, int cchData);
+__declspec(dllimport) unsigned long __stdcall GetCurrentDirectoryW(
+    unsigned long nBufferLength, wchar_t* lpBuffer);
+}
 template <size_t N>
-static bool get_user_default_locale_info(LCTYPE lcType, char (&buf)[N])
+static bool get_user_default_locale_info(unsigned long lcType, char (&buf)[N])
 {
-  return GetLocaleInfoA(LOCALE_USER_DEFAULT, lcType, buf, N) != 0;
+  return ::GetLocaleInfoA(LOCALE_USER_DEFAULT, lcType, buf, N) != 0;
 }
 #endif
 
@@ -87,9 +96,9 @@ static inline bool isAbsolute(const std::wstring path)
 
 static std::wstring getCurrentPath()
 {
-  auto size = GetCurrentDirectoryW(0, NULL);
+  auto size = ::GetCurrentDirectoryW(0, NULL);
   std::vector<wchar_t> buf(size);
-  GetCurrentDirectoryW(size, buf.data());
+  ::GetCurrentDirectoryW(size, buf.data());
   auto currentPath = std::wstring(buf.data());
   while (currentPath.back() == L'\\') {
     currentPath.pop_back();
@@ -117,7 +126,7 @@ static std::wstring joinPath(const std::wstring& path1, std::wstring path2)
 std::wstring toNamespacedPath(const std::wstring& path)
 {
   std::wstring originPath(path);
-  if (originPath.size() >= MAX_PATH) {
+  if (originPath.size() >= 260) {
     static const std::wstring currentPath = getCurrentPath();
     for (std::wstring::iterator i = originPath.begin(), eoi = originPath.end();
          i != eoi; ++i) {

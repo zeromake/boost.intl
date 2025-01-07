@@ -14,7 +14,7 @@
 #  define BOOST_ASSERT(expr) ((void)0)
 #  define BOOST_ASSERT_MSG(expr, msg) ((void)0)
 #else
-#  include <assert.h>
+#  include <cassert>
 #  define BOOST_ASSERT(expr) assert(expr)
 #  define BOOST_ASSERT_MSG(expr, msg) assert((expr) && (msg))
 #endif

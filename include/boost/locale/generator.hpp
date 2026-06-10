@@ -13,13 +13,13 @@
 
 namespace boost {
 namespace locale {
-enum char_facet_t {
+enum class char_facet_t {
   nochar =
       0, ///< Unspecified character category for character independent facets
   char_f = 1 << 0,  ///< 8-bit character facets
   wchar_f = 1 << 1, ///< wide character facets
 };
-enum category_t {
+enum class category_t {
   message = 1 << 4, ///< Generate message facets
 };
 class generator {
